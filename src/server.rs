@@ -1,4 +1,4 @@
-use std::{io::Read, net::{TcpListener, TcpStream}, thread};
+use std::{io::{self, Read, Write}, net::{TcpListener, TcpStream}, thread};
 
 
 pub fn server(port: usize) {
@@ -26,14 +26,22 @@ pub fn server(port: usize) {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let mut buf: [u8; 1024] = [0; 1024];
-    stream.read(&mut buf);
-    let s = convert_buf_to_string(&buf);
-    println!("{s}");
+    loop {
+        let mut buf: [u8; 1024] = [0; 1024];
+        let _ =stream.read(&mut buf);
+        if buf[0] == 0 {
+            break;
+        }
+        let s = convert_buf_to_string(&buf);
+        print!("{s}");
+        let _ = io::stdout().flush();
+        let _ = stream.write(&buf);
+    }
 }
 
 fn convert_buf_to_string(buff: &[u8]) -> String {
     let mut constructed_string = String::new();
+    // println!("{:?}", buff);
     for byte in buff {
         constructed_string = format!("{}{}", constructed_string, *byte as char);
     }
